@@ -102,15 +102,15 @@ export const AppLayout: React.FC = () => {
     switch (role) {
       case 'ORG_ADMIN':
       case 'SUPER_ADMIN':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-stone-100 text-stone-800 border-stone-300';
       case 'DISPATCHER':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'bg-amber-50 text-amber-800 border-amber-200';
       case 'TECHNICIAN':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200';
       case 'FINANCE':
-        return 'bg-amber-100 text-amber-800 border-amber-200';
+        return 'bg-stone-100 text-stone-700 border-stone-300';
       default:
-        return 'bg-slate-100 text-slate-800 border-slate-200';
+        return 'bg-stone-100 text-stone-800 border-stone-200';
     }
   };
 
@@ -128,16 +128,16 @@ export const AppLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800">
-        <div className="h-16 flex items-center px-6 gap-3 border-b border-slate-800">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+    <div className="flex h-screen bg-stone-50 font-sans">
+      {/* Sidebar - Deep Forest Pine */}
+      <aside className="w-64 bg-[#142319] text-stone-300 flex flex-col border-r border-[#1f3727]">
+        <div className="h-16 flex items-center px-6 gap-3 border-b border-[#1f3727]">
+          <div className="w-8 h-8 rounded-lg bg-[#2d6a4f] flex items-center justify-center text-white font-bold text-lg shadow-sm">
             F
           </div>
           <div>
-            <h1 className="text-white font-bold text-base leading-none">FieldOps</h1>
-            <span className="text-[11px] text-slate-400 font-medium tracking-wide">
+            <h1 className="text-stone-100 font-bold text-base leading-none">FieldOps</h1>
+            <span className="text-[11px] text-emerald-400 font-medium tracking-wide">
               {getPortalLabel(user?.role)}
             </span>
           </div>
@@ -145,7 +145,7 @@ export const AppLayout: React.FC = () => {
 
         {/* Role-Based Nav Menu */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-emerald-600/70">
             Navigation
           </div>
           {navigation.map((item) => {
@@ -157,8 +157,8 @@ export const AppLayout: React.FC = () => {
                 to={item.href}
                 className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    ? 'bg-[#2d6a4f] text-white shadow-xs font-semibold'
+                    : 'text-stone-300 hover:text-white hover:bg-[#1c3224]'
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -169,16 +169,16 @@ export const AppLayout: React.FC = () => {
         </nav>
 
         {/* Sidebar Footer User Card with Logout */}
-        <div className="p-4 border-t border-slate-800 flex items-center justify-between gap-3 bg-slate-950/40">
+        <div className="p-4 border-t border-[#1f3727] flex items-center justify-between gap-3 bg-[#0d1711]">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-9 h-9 rounded-full bg-blue-700 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
+            <div className="w-9 h-9 rounded-full bg-[#2d6a4f] flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
               {initials}
             </div>
             <div className="overflow-hidden">
-              <p className="text-xs font-semibold text-white truncate">
+              <p className="text-xs font-semibold text-stone-100 truncate">
                 {user ? `${user.firstName} ${user.lastName}` : 'Apex Mechanical'}
               </p>
-              <p className="text-[11px] text-slate-400 truncate">
+              <p className="text-[11px] text-stone-400 truncate">
                 {user?.role || 'Dispatcher'}
               </p>
             </div>
@@ -186,7 +186,7 @@ export const AppLayout: React.FC = () => {
           <button
             onClick={handleLogout}
             title="Log Out"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-stone-400 hover:text-rose-400 hover:bg-rose-950/40 transition-colors cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -196,28 +196,28 @@ export const AppLayout: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-8">
+        <header className="h-16 bg-white border-b border-stone-200 flex items-center justify-between px-6 lg:px-8">
           <div>
-            <h2 className="text-base lg:text-lg font-bold text-slate-900 leading-tight">
+            <h2 className="text-base lg:text-lg font-bold text-stone-800 leading-tight">
               {getPortalLabel(user?.role)}
             </h2>
-            <p className="text-xs text-slate-500 hidden sm:block">
+            <p className="text-xs text-stone-500 hidden sm:block">
               {user?.organization?.name || 'Apex Mechanical Services'}
             </p>
           </div>
 
           <div className="flex items-center gap-3 lg:gap-4">
             {/* Role Switcher for local demo */}
-            <div className="hidden md:flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
-              <span className="text-[11px] font-semibold text-slate-500 px-2">
+            <div className="hidden md:flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200 text-xs">
+              <span className="text-[11px] font-semibold text-stone-500 px-2">
                 Role:
               </span>
               <button
                 onClick={() => handleSwitchRole('admin@apexservices.lk')}
                 className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                   currentRole === 'ORG_ADMIN'
-                    ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-[#2d6a4f] text-white shadow-xs font-semibold'
+                    : 'text-stone-600 hover:text-stone-900'
                 }`}
               >
                 Admin
@@ -226,8 +226,8 @@ export const AppLayout: React.FC = () => {
                 onClick={() => handleSwitchRole('dispatch@apexservices.lk')}
                 className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                   currentRole === 'DISPATCHER'
-                    ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-[#2d6a4f] text-white shadow-xs font-semibold'
+                    : 'text-stone-600 hover:text-stone-900'
                 }`}
               >
                 Dispatcher
@@ -236,8 +236,8 @@ export const AppLayout: React.FC = () => {
                 onClick={() => handleSwitchRole('kasun.technician@apexservices.lk')}
                 className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                   currentRole === 'TECHNICIAN'
-                    ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-[#2d6a4f] text-white shadow-xs font-semibold'
+                    : 'text-stone-600 hover:text-stone-900'
                 }`}
               >
                 Technician
@@ -246,13 +246,13 @@ export const AppLayout: React.FC = () => {
 
             {/* Current User Info & Logout Button */}
             {user && (
-              <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
+              <div className="flex items-center gap-3 pl-3 border-l border-stone-200">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+                  <div className="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-stone-600">
                     <UserIcon className="w-3.5 h-3.5" />
                   </div>
                   <div className="hidden sm:block text-right">
-                    <span className="text-xs font-bold text-slate-800 block leading-tight">
+                    <span className="text-xs font-bold text-stone-800 block leading-tight">
                       {user.firstName} {user.lastName}
                     </span>
                     <span className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-semibold border ${roleBadgeStyle(user.role)}`}>
@@ -274,7 +274,7 @@ export const AppLayout: React.FC = () => {
         </header>
 
         {/* Content Body */}
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-slate-50">
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-stone-50">
           <Outlet />
         </main>
       </div>
