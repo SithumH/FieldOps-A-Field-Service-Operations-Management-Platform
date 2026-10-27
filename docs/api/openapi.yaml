@@ -1,0 +1,197 @@
+openapi: 3.0.3
+info:
+  title: FieldOps API
+  description: >
+    Production-grade Field Service Dispatch & Operations Platform REST API.
+    Provides complete lifecycle handling: Service Requests -> Conflict-Free Dispatch
+    -> Mobile Execution & Checklists -> Atomic Inventory Deductions -> Invoicing & Payments.
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000/api/v1
+    description: Local development server
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: Service status
+  /auth/login:
+    post:
+      summary: User login session creation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful with session cookie set
+        '401':
+          description: Invalid email or password
+  /auth/register-organization:
+    post:
+      summary: Atomic onboarding of an organization and admin user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [organizationName, adminFirstName, adminLastName, email, password]
+              properties:
+                organizationName:
+                  type: string
+                adminFirstName:
+                  type: string
+                adminLastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '201':
+          description: Organization created
+  /customers:
+    get:
+      summary: List customers in organization
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Customer list
+    post:
+      summary: Create new customer profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, phone]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+                companyName:
+                  type: string
+      responses:
+        '201':
+          description: Customer created
+  /work-orders:
+    get:
+      summary: List work orders
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: priority
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Work order list
+    post:
+      summary: Create work order
+      responses:
+        '201':
+          description: Work order created
+  /work-orders/{id}/assign:
+    post:
+      summary: Assign technician with double-booking conflict prevention
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [technicianId, scheduledStart, scheduledEnd]
+              properties:
+                technicianId:
+                  type: string
+                scheduledStart:
+                  type: string
+                  format: date-time
+                scheduledEnd:
+                  type: string
+                  format: date-time
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Technician assigned
+        '409':
+          description: Double-booking conflict detected
+  /work-orders/{id}/parts:
+    post:
+      summary: Record parts usage with atomic stock decrement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [inventoryItemId, quantity]
+              properties:
+                inventoryItemId:
+                  type: string
+                quantity:
+                  type: integer
+      responses:
+        '201':
+          description: Parts recorded and inventory deducted
+        '400':
+          description: Insufficient inventory on hand
+  /work-orders/{id}/invoice:
+    post:
+      summary: Generate invoice from completed work order with exact Decimal calculation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Itemized invoice generated
+        '400':
+          description: Work order not completed or already invoiced
+  /reports/operations:
+    get:
+      summary: Dispatch operations and financial report
+      responses:
+        '200':
+          description: Operational summary metrics
+

@@ -1,0 +1,25 @@
+{
+  "name": "fieldops",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-grade Field Service Dispatch & Operations Platform",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@fieldops/api",
+    "dev:api": "npm run dev --workspace=@fieldops/api",
+    "dev:web": "npm run dev --workspace=@fieldops/web",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
+  }
+}
+

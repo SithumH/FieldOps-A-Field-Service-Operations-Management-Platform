@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fieldops-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-fieldops}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fieldops_dev_pass}
+      POSTGRES_DB: ${DB_NAME:-fieldops}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - fieldops_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fieldops} -d ${DB_NAME:-fieldops}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  fieldops_pgdata:
+    driver: local
+

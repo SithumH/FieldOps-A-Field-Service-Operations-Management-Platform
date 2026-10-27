@@ -1,0 +1,65 @@
+export enum UserRole {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  ORG_ADMIN = 'ORG_ADMIN',
+  DISPATCHER = 'DISPATCHER',
+  TECHNICIAN = 'TECHNICIAN',
+  CUSTOMER = 'CUSTOMER',
+  FINANCE = 'FINANCE',
+}
+
+export enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  SUSPENDED = 'SUSPENDED',
+}
+
+export enum PriorityLevel {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  EMERGENCY = 'EMERGENCY',
+}
+
+export enum ServiceRequestStatus {
+  PENDING = 'PENDING',
+  REVIEWED = 'REVIEWED',
+  CONVERTED = 'CONVERTED',
+  REJECTED = 'REJECTED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum WorkOrderStatus {
+  REQUESTED = 'REQUESTED',
+  CONFIRMED = 'CONFIRMED',
+  SCHEDULED = 'SCHEDULED',
+  ASSIGNED = 'ASSIGNED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  ON_HOLD = 'ON_HOLD',
+  COMPLETED = 'COMPLETED',
+  INVOICED = 'INVOICED',
+  CLOSED = 'CLOSED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum InvoiceStatus {
+  DRAFT = 'DRAFT',
+  ISSUED = 'ISSUED',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  VOID = 'VOID',
+}
+
+export enum PaymentMethod {
+  CASH = 'CASH',
+  CARD = 'CARD',
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  ONLINE = 'ONLINE',
+}
+
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  REFUNDED = 'REFUNDED',
+}
+

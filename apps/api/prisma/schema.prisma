@@ -1,0 +1,478 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ORG_ADMIN
+  DISPATCHER
+  TECHNICIAN
+  CUSTOMER
+  FINANCE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  EMERGENCY
+}
+
+enum ServiceRequestStatus {
+  PENDING
+  REVIEWED
+  CONVERTED
+  REJECTED
+  CANCELLED
+}
+
+enum WorkOrderStatus {
+  REQUESTED
+  CONFIRMED
+  SCHEDULED
+  ASSIGNED
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  INVOICED
+  CLOSED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  OVERDUE
+  VOID
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BANK_TRANSFER
+  ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Organization {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  phone       String?
+  email       String?
+  address     String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  users           User[]
+  customers       Customer[]
+  skills          Skill[]
+  serviceCatalog  ServiceCatalog[]
+  inventoryItems  InventoryItem[]
+  auditLogs       AuditLog[]
+
+  @@map("organizations")
+}
+
+model User {
+  id              String       @id @default(uuid())
+  organizationId  String?      @map("organization_id")
+  email           String       @unique
+  passwordHash    String       @map("password_hash")
+  role            Role         @default(CUSTOMER)
+  status          UserStatus   @default(ACTIVE)
+  firstName       String       @map("first_name")
+  lastName        String       @map("last_name")
+  phone           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  technicianProfile TechnicianProfile?
+  statusChanges   WorkOrderStatusHistory[]
+  uploadedAttachments Attachment[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+
+  @@index([organizationId])
+  @@index([role])
+  @@map("users")
+}
+
+model Customer {
+  id              String       @id @default(uuid())
+  organizationId  String       @map("organization_id")
+  name            String
+  email           String
+  phone           String
+  companyName     String?      @map("company_name")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  addresses       CustomerAddress[]
+  serviceRequests ServiceRequest[]
+  workOrders      WorkOrder[]
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@map("customers")
+}
+
+model CustomerAddress {
+  id          String   @id @default(uuid())
+  customerId  String   @map("customer_id")
+  label       String   @default("Primary")
+  street      String
+  city        String
+  state       String
+  postalCode  String   @map("postal_code")
+  country     String   @default("LK")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  workOrders  WorkOrder[]
+
+  @@index([customerId])
+  @@map("customer_addresses")
+}
+
+model TechnicianProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique @map("user_id")
+  isAvailable   Boolean  @default(true) @map("is_available")
+  hourlyRate    Decimal  @default(0.00) @map("hourly_rate") @db.Decimal(10, 2)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills        TechnicianSkill[]
+  assignments   WorkOrderAssignment[]
+
+  @@map("technician_profiles")
+}
+
+model Skill {
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  name            String
+  description     String?
+  createdAt       DateTime @default(now())
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  technicians     TechnicianSkill[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("skills")
+}
+
+model TechnicianSkill {
+  technicianId String @map("technician_id")
+  skillId      String @map("skill_id")
+
+  technician   TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  skill        Skill             @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([technicianId, skillId])
+  @@map("technician_skills")
+}
+
+model ServiceCatalog {
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  name            String
+  description     String?
+  defaultDuration Int      @default(60) @map("default_duration_mins")
+  basePrice       Decimal  @default(0.00) @map("base_price") @db.Decimal(10, 2)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  serviceRequests ServiceRequest[]
+  workOrders      WorkOrder[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("service_catalog")
+}
+
+model ServiceRequest {
+  id              String               @id @default(uuid())
+  customerId      String               @map("customer_id")
+  serviceId       String?              @map("service_id")
+  title           String
+  description     String
+  priority        Priority             @default(MEDIUM)
+  status          ServiceRequestStatus @default(PENDING)
+  preferredDate   DateTime?            @map("preferred_date")
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  customer        Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  service         ServiceCatalog?      @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  workOrders      WorkOrder[]
+
+  @@index([customerId])
+  @@index([status])
+  @@map("service_requests")
+}
+
+model WorkOrder {
+  id              String            @id @default(uuid())
+  requestId       String?           @map("request_id")
+  customerId      String            @map("customer_id")
+  serviceId       String?           @map("service_id")
+  addressId       String?           @map("address_id")
+  workOrderNumber String            @unique @map("work_order_number")
+  title           String
+  description     String
+  priority        Priority          @default(MEDIUM)
+  status          WorkOrderStatus   @default(REQUESTED)
+  scheduledStart  DateTime?         @map("scheduled_start")
+  scheduledEnd    DateTime?         @map("scheduled_end")
+  actualStart     DateTime?         @map("actual_start")
+  actualEnd       DateTime?         @map("actual_end")
+  customerNotes   String?           @map("customer_notes")
+  internalNotes   String?           @map("internal_notes")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  request         ServiceRequest?   @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  customer        Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  service         ServiceCatalog?   @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  address         CustomerAddress?  @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  assignments     WorkOrderAssignment[]
+  statusHistory   WorkOrderStatusHistory[]
+  checklists      WorkOrderChecklist[]
+  partsUsage      PartsUsage[]
+  invoices        Invoice[]
+  attachments     Attachment[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([scheduledStart, scheduledEnd])
+  @@map("work_orders")
+}
+
+model WorkOrderAssignment {
+  id             String            @id @default(uuid())
+  workOrderId    String            @map("work_order_id")
+  technicianId   String            @map("technician_id")
+  assignedAt     DateTime          @default(now()) @map("assigned_at")
+  notes          String?
+
+  workOrder      WorkOrder         @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  technician     TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@unique([workOrderId, technicianId])
+  @@index([technicianId])
+  @@map("work_order_assignments")
+}
+
+model WorkOrderStatusHistory {
+  id          String          @id @default(uuid())
+  workOrderId String          @map("work_order_id")
+  oldStatus   WorkOrderStatus @map("old_status")
+  newStatus   WorkOrderStatus @map("new_status")
+  changedById String?         @map("changed_by_id")
+  reason      String?
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  workOrder   WorkOrder       @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  changedBy   User?           @relation(fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([workOrderId])
+  @@map("work_order_status_history")
+}
+
+model WorkOrderChecklist {
+  id          String          @id @default(uuid())
+  workOrderId String          @map("work_order_id")
+  title       String
+  createdAt   DateTime        @default(now())
+
+  workOrder   WorkOrder       @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  items       ChecklistItem[]
+
+  @@index([workOrderId])
+  @@map("work_order_checklists")
+}
+
+model ChecklistItem {
+  id          String             @id @default(uuid())
+  checklistId String             @map("checklist_id")
+  description String
+  isCompleted Boolean            @default(false) @map("is_completed")
+  completedAt DateTime?          @map("completed_at")
+
+  checklist   WorkOrderChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@index([checklistId])
+  @@map("checklist_items")
+}
+
+model InventoryItem {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  sku            String
+  name           String
+  description    String?
+  unitCost       Decimal      @default(0.00) @map("unit_cost") @db.Decimal(10, 2)
+  unitPrice      Decimal      @default(0.00) @map("unit_price") @db.Decimal(10, 2)
+  quantityOnHand Int          @default(0) @map("quantity_on_hand")
+  reorderLevel   Int          @default(5) @map("reorder_level")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  partsUsage     PartsUsage[]
+
+  @@unique([organizationId, sku])
+  @@index([organizationId])
+  @@map("inventory_items")
+}
+
+model PartsUsage {
+  id              String        @id @default(uuid())
+  workOrderId     String        @map("work_order_id")
+  inventoryItemId String        @map("inventory_item_id")
+  quantity        Int           @default(1)
+  unitPrice       Decimal       @map("unit_price") @db.Decimal(10, 2)
+  createdAt       DateTime      @default(now())
+
+  workOrder       WorkOrder     @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+
+  @@index([workOrderId])
+  @@index([inventoryItemId])
+  @@map("parts_usage")
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  workOrderId   String        @map("work_order_id")
+  invoiceNumber String        @unique @map("invoice_number")
+  status        InvoiceStatus @default(DRAFT)
+  subtotal      Decimal       @default(0.00) @db.Decimal(10, 2)
+  taxRate       Decimal       @default(0.00) @map("tax_rate") @db.Decimal(5, 2)
+  tax           Decimal       @default(0.00) @db.Decimal(10, 2)
+  total         Decimal       @default(0.00) @db.Decimal(10, 2)
+  dueDate       DateTime?     @map("due_date")
+  issuedAt      DateTime?     @map("issued_at")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  workOrder     WorkOrder     @relation(fields: [workOrderId], references: [id], onDelete: Restrict)
+  items         InvoiceItem[]
+  payments      Payment[]
+
+  @@index([workOrderId])
+  @@index([status])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String   @map("invoice_id")
+  description String
+  quantity    Int      @default(1)
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(10, 2)
+  totalPrice  Decimal  @map("total_price") @db.Decimal(10, 2)
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}
+
+model Payment {
+  id          String        @id @default(uuid())
+  invoiceId   String        @map("invoice_id")
+  amount      Decimal       @db.Decimal(10, 2)
+  method      PaymentMethod @default(ONLINE)
+  status      PaymentStatus @default(COMPLETED)
+  reference   String?
+  paidAt      DateTime      @default(now()) @map("paid_at")
+
+  invoice     Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+  @@map("payments")
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  type      String
+  title     String
+  message   String
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model Attachment {
+  id          String    @id @default(uuid())
+  workOrderId String    @map("work_order_id")
+  fileName    String    @map("file_name")
+  fileType    String    @map("file_type")
+  fileSize    Int       @map("file_size")
+  storageKey  String    @map("storage_key")
+  uploadedById String?  @map("uploaded_by_id")
+  createdAt   DateTime  @default(now())
+
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  uploadedBy  User?     @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([workOrderId])
+  @@map("attachments")
+}
+
+model AuditLog {
+  id             String        @id @default(uuid())
+  organizationId String?       @map("organization_id")
+  actorId        String?       @map("actor_id")
+  action         String
+  entityType     String        @map("entity_type")
+  entityId       String        @map("entity_id")
+  oldValue       Json?         @map("old_value")
+  newValue       Json?         @map("new_value")
+  ipAddress      String?       @map("ip_address")
+  userAgent      String?       @map("user_agent")
+  createdAt      DateTime      @default(now())
+
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor          User?         @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
